@@ -5,17 +5,21 @@ using UnityEngine;
 public class Rabbit : MonoBehaviour
 {
     public float speed = 1;
+    Transform heroParent = null;
     bool isGrounded;
     bool JumpActive = false;
     float JumpTime = 0f;
     public float MaxJumpTime = 2f;
     public float JumpSpeed = 2f;
-    Rigidbody2D myBody = null;
+    public Rigidbody2D myBody = null;
     // Use this for initialization
     void Start()
     {
+
+        this.heroParent = this.transform.parent;
         myBody = this.GetComponent<Rigidbody2D>();
         LevelController.current.setStartPosition(transform.position);
+    
     }
 
     // Update is called once per frame
@@ -29,11 +33,18 @@ public class Rabbit : MonoBehaviour
         if (hit)
         {
             isGrounded = true;
+            if (hit.transform != null && hit.transform.GetComponent<MovingPlatform>() != null)
+            {
+                //Приліпаємо до платформи        
+                SetNewParent(this.transform, hit.transform);
+            }
         }
         else
         {
             isGrounded = false;
+            SetNewParent(this.transform, this.heroParent);
         }
+
         //        Намалюватилінію(длярозробника)
         Debug.DrawLine(from, to, Color.red);
 
@@ -55,7 +66,8 @@ public class Rabbit : MonoBehaviour
             }
             else
             {
-                this.JumpActive = false; this.JumpTime = 0;
+                this.JumpActive = false;
+                this.JumpTime = 0;
             }
         }
 
@@ -95,4 +107,20 @@ public class Rabbit : MonoBehaviour
 
     }
 
+    static void SetNewParent(Transform obj, Transform new_parent)
+    {
+        if (obj.transform.parent != new_parent)
+        {
+            //Засікаємо позицію у Глобальних координатах       
+            Vector3 pos = obj.transform.position;
+            //Встановлюємо нового батька        
+            obj.transform.parent = new_parent;
+            //Після зміни батька координати кролика зміняться        
+            //Оскільки вони тепер відносно іншого об’єкта
+            //повертаємо кролика в ті самі глобальні координати        
+            obj.transform.position = pos;
+
+
+        }
+    }
 }
